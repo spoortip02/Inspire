@@ -4,7 +4,13 @@ import { motion } from "framer-motion";
 import { Bookmark, ExternalLink, Heart } from "lucide-react";
 import type { Idea } from "./IdeaGrid";
 
-export function IdeaCard({ idea }: { idea: Idea }) {
+type Props = {
+  idea: Idea;
+  onSave?: (idea: Idea) => void; // ✅ optional
+  showSave?: boolean; // ✅ optional (useful if you want Save only for suggestions)
+};
+
+export function IdeaCard({ idea, onSave, showSave = false }: Props) {
   return (
     <motion.article
       whileHover={{ y: -4 }}
@@ -18,12 +24,12 @@ export function IdeaCard({ idea }: { idea: Idea }) {
           alt={idea.title}
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           onError={(e) => {
-            // fallback if the image blocks hotlinking
             (e.currentTarget as HTMLImageElement).style.display = "none";
           }}
           referrerPolicy="no-referrer"
         />
 
+        {/* Top-right actions */}
         <div className="absolute right-3 top-3 flex gap-2">
           {idea.link_url ? (
             <a
@@ -37,17 +43,43 @@ export function IdeaCard({ idea }: { idea: Idea }) {
             </a>
           ) : null}
 
-          <button className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white">
+          <button
+            type="button"
+            className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white"
+            aria-label="Bookmark"
+          >
             <Bookmark size={16} />
           </button>
-          <button className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white">
+
+          <button
+            type="button"
+            className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white"
+            aria-label="Like"
+          >
             <Heart size={16} />
           </button>
         </div>
+
+        {/* Save button (bottom-right) — only when you want it */}
+        {showSave && onSave ? (
+          <div className="absolute bottom-3 right-3">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSave(idea);
+              }}
+              className="rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-neutral-800"
+            >
+              Save
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="p-4">
         <h3 className="line-clamp-1 text-sm font-semibold">{idea.title}</h3>
+
         {idea.note ? (
           <p className="mt-1 line-clamp-2 text-xs text-neutral-600">{idea.note}</p>
         ) : (

@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, X, Bot } from "lucide-react";
+import { supabase } from "@/lib/supabaseClient";
 import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
+
+
 
 type ChatMsg = {
   id: string;

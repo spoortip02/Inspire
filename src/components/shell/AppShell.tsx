@@ -1,4 +1,4 @@
-import { AssistantSuggestionsProvider } from "@/components/assistant/assisstant-suggestions-context";
+import { AssistantSuggestionsProvider } from "@/components/assistant/assistant-suggestions-context";
 import { AssistantWidget } from "@/components/assistant/AssistantWidget";
 import { PropsWithChildren } from "react";
 import { Header } from "./Header";

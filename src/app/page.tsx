@@ -6,7 +6,7 @@ import { IdeaGrid, type Idea } from "@/components/ideas/IdeaGrid";
 import { NewBoardModal } from "@/components/boards/NewBoardModal";
 import { SaveIdeaModal } from "@/components/ideas/SaveIdeaModal";
 import { supabase } from "@/lib/supabaseClient";
-import { useAssistantSuggestions } from "@/components/assistant/assisstant-suggestions-context";
+import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
 
 function SuggestedSection({
   onSaveSuggestion,
@@ -183,6 +183,10 @@ function HomeInner() {
     fetchBoards();
     fetchIdeas();
   }, []);
+  useEffect(() => {
+  if (openIdea) fetchBoards();
+}, [openIdea]);
+
 
   return (
     <div className="px-5 py-6">
