@@ -1,22 +1,41 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
-  const msg = (body?.message ?? "").toString().toLowerCase();
+  const body = await req.json().catch(() => ({}));
+  const msg = String(body?.message ?? "").toLowerCase();
 
+  // Default reply
   let reply =
-    "Tell me a mood (cozy, bold, minimal, productive) or a theme (workspace, outfits, UI, travel) and I’ll suggest ideas + boards.";
+    "Tell me a mood (cozy, bold, minimal, productive) or a theme (workspace, outfits, UI, travel). I’ll suggest ideas and show them on the page.";
+
+  let ideas: any[] = [];
 
   if (msg.includes("cozy")) {
-    reply =
-      "Cozy ideas: 1) warm lamp + desk setup, 2) beige UI palette, 3) café playlist + study corner, 4) knit textures moodboard, 5) journaling prompts, 6) soft lighting photography.\n\nWant me to create 3 boards for this vibe?";
-  } else if (msg.includes("ask") && msg.includes("question")) {
-    reply =
-      "Okay — 5 quick questions:\n1) Do you want calm or energetic vibes?\n2) Are you saving for design, life, or career?\n3) What 3 words describe your ideal aesthetic?\n4) Minimal or maximal?\n5) What do you want to feel after scrolling your boards?";
-  } else if (msg.includes("board")) {
-    reply =
-      "Board ideas you’ll actually use:\n• Mood: Cozy & Calm\n• UI: Beige + Clean Design\n• Life: Little Habits That Fix Everything\n\nTell me your top 2 interests and I’ll tailor board names.";
+    reply = "Here are cozy, calm ideas. I’ve put them in ✨ Suggested for you above your saved pins.";
+    ideas = [
+      {
+        title: "Warm desk corner lighting",
+        image_url:
+          "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop",
+        reason: "Warm light makes a space feel safe + focused.",
+        tags: ["cozy", "workspace", "warm"],
+      },
+      {
+        title: "Soft beige UI palette",
+        image_url:
+          "https://images.unsplash.com/photo-1526481280695-3c687fd5432c?w=1200&auto=format&fit=crop",
+        reason: "Neutral palettes feel calm and premium.",
+        tags: ["ui", "palette", "minimal"],
+      },
+      {
+        title: "Cozy café vibe",
+        image_url:
+          "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200&auto=format&fit=crop",
+        reason: "Café lighting + textures = comfort + productivity.",
+        tags: ["mood", "cozy", "lighting"],
+      },
+    ];
   }
 
-  return NextResponse.json({ reply });
+  return NextResponse.json({ reply, ideas });
 }

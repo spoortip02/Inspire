@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, X, Bot } from "lucide-react";
+import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
 
 type ChatMsg = {
   id: string;
@@ -21,6 +22,8 @@ export function AssistantWidget() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { setSuggestedIdeas } = useAssistantSuggestions();
+
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       id: crypto.randomUUID(),
@@ -34,7 +37,6 @@ export function AssistantWidget() {
 
   useEffect(() => {
     if (!open) return;
-    // Scroll to bottom when opening
     setTimeout(() => listRef.current?.scrollTo({ top: 999999, behavior: "smooth" }), 50);
   }, [open]);
 
@@ -62,6 +64,19 @@ export function AssistantWidget() {
       });
 
       const data = await res.json();
+
+      // ✅ Publish suggestions to main feed
+      if (Array.isArray(data?.ideas)) {
+        setSuggestedIdeas(
+          data.ideas.map((it: any) => ({
+            id: crypto.randomUUID(),
+            title: String(it.title ?? "Idea"),
+            image_url: String(it.image_url ?? ""),
+            reason: String(it.reason ?? ""),
+            tags: Array.isArray(it.tags) ? it.tags.map(String) : [],
+          }))
+        );
+      }
 
       const assistantMsg: ChatMsg = {
         id: crypto.randomUUID(),
