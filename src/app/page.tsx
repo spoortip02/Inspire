@@ -7,6 +7,7 @@ import { NewBoardModal } from "@/components/boards/NewBoardModal";
 import { SaveIdeaModal } from "@/components/ideas/SaveIdeaModal";
 import { supabase } from "@/lib/supabaseClient";
 import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
+import { WelcomeOverlay } from "@/components/assistant/WelcomeOverlay";
 
 function SuggestedSection({
   onSaveSuggestion,
@@ -107,6 +108,13 @@ function SuggestedSection({
 function HomeInner() {
   const [openBoard, setOpenBoard] = useState(false);
   const [openIdea, setOpenIdea] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+useEffect(() => {
+  const seen = localStorage.getItem("inspire_seen_welcome");
+  if (!seen) setShowWelcome(true);
+}, []);
+
 
   const [boards, setBoards] = useState<{ id: string; name: string }[]>([]);
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -189,6 +197,21 @@ function HomeInner() {
 
 
   return (
+  <>
+    {showWelcome && (
+      <WelcomeOverlay
+        onSkip={() => {
+          localStorage.setItem("inspire_seen_welcome", "1");
+          setShowWelcome(false);
+        }}
+        onStart={(message) => {
+          localStorage.setItem("inspire_seen_welcome", "1");
+          setShowWelcome(false);
+          console.log("First message:", message);
+        }}
+      />
+    )}
+
     <div className="px-5 py-6">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
@@ -240,7 +263,8 @@ function HomeInner() {
         onSave={handleSaveIdea}
       />
     </div>
-  );
+  </>
+);
 }
 
 export default function Home() {
