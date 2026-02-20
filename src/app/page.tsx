@@ -109,6 +109,9 @@ function HomeInner() {
   const [openBoard, setOpenBoard] = useState(false);
   const [openIdea, setOpenIdea] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
+  function openWelcomeAgain() {
+  setShowWelcome(true);
+}
 
 useEffect(() => {
   const seen = localStorage.getItem("inspire_seen_welcome");
@@ -206,6 +209,7 @@ useEffect(() => {
         }}
         onStart={(message) => {
           localStorage.setItem("inspire_seen_welcome", "1");
+          localStorage.setItem("inspire_pending_message", message);
           setShowWelcome(false);
           console.log("First message:", message);
         }}
@@ -233,6 +237,12 @@ useEffect(() => {
             className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
           >
             Save Idea
+          </button>
+          <button
+            onClick={openWelcomeAgain}
+            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-100"
+>
+            💗 Companion
           </button>
         </div>
       </div>

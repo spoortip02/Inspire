@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Send, X, Bot } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
-
-
 
 type ChatMsg = {
   id: string;
@@ -24,6 +21,7 @@ export function AssistantWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [stage, setStage] = useState<string>(() => localStorage.getItem("inspire_stage") || "START");
 
   const { setSuggestedIdeas } = useAssistantSuggestions();
 
@@ -37,6 +35,20 @@ export function AssistantWidget() {
   ]);
 
   const listRef = useRef<HTMLDivElement | null>(null);
+
+  // ✅ Auto-open + auto-send message from WelcomeOverlay
+  useEffect(() => {
+    const pending = localStorage.getItem("inspire_pending_message");
+    if (!pending) return;
+
+    setOpen(true);
+
+    setTimeout(() => {
+      send(pending);
+      localStorage.removeItem("inspire_pending_message");
+    }, 150);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -52,23 +64,36 @@ export function AssistantWidget() {
     if (!trimmed || loading) return;
 
     const userMsg: ChatMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
+
+    // ✅ Optimistic UI
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
+      // ✅ IMPORTANT: include the new user message in history
+      const historyForApi = [...messages, userMsg].map((m) => ({
+        role: m.role,
+        content: m.content,
+      }));
+
       const res = await fetch("/api/assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: trimmed,
-          history: messages.map((m) => ({ role: m.role, content: m.content })),
+          history: historyForApi,
+          stage,
         }),
       });
 
       const data = await res.json();
+      if (data?.nextStage) {
+  setStage(data.nextStage);
+  localStorage.setItem("inspire_stage", String(data.nextStage));
+}
 
-      // ✅ Publish suggestions to main feed
+      // ✅ Suggestions -> context
       if (Array.isArray(data?.ideas)) {
         setSuggestedIdeas(
           data.ideas.map((it: any) => ({

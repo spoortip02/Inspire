@@ -1,123 +1,115 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-type Action =
-  | { type: "CREATE_BOARD"; name: string }
-  | { type: "CLEAR_SUGGESTIONS" }
-  | null;
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
-function extractBoardName(message: string) {
-  const m = message.trim();
+type Stage = "START" | "ASK_VIBE" | "ASK_INTERESTS" | "ASK_GOAL" | "DONE";
 
-  // If user uses quotes: create board "Cozy Corners"
-  const quoted = m.match(/"([^"]+)"/);
-  if (quoted?.[1]) return quoted[1].trim();
+function getStage(): Stage {
+  // stored on client; server will receive it
+  return "START";
+}
 
-  // Try common phrasing patterns
-  const patterns = [
-    /create (?:a )?board(?: called)? (.+)$/i,
-    /make (?:a )?board(?: called)? (.+)$/i,
-    /new board (.+)$/i,
-  ];
-
-  for (const p of patterns) {
-    const match = m.match(p);
-    if (match?.[1]) return match[1].trim();
-  }
-
-  return "";
+function parseCSVish(input: string) {
+  return input
+    .split(/[,/]/g)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 8);
 }
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const raw = String(body?.message ?? "").trim();
-  const msg = raw.toLowerCase();
+  const message = String(body?.message ?? "").trim();
+  const stage = String(body?.stage ?? "START") as Stage;
 
-  let reply =
-    'Tell me a mood (cozy, bold, minimal) or say: create board "Cozy Corners".';
+  // 1) ensure single profile row exists (dev mode)
+  // we keep a single profile for now (no auth yet)
+  const { data: existing } = await supabase
+    .from("profiles")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .limit(1);
 
-  let ideas: any[] = [];
-  let action: Action = null;
+  let profile = existing?.[0];
 
-  // -----------------------------
-  // 1) Action: Clear suggestions
-  // -----------------------------
-  if (msg.includes("clear suggestions") || msg === "clear" || msg.includes("remove suggestions")) {
-    reply = "Done ✅ I cleared the suggestions section.";
-    action = { type: "CLEAR_SUGGESTIONS" };
-    return NextResponse.json({ reply, action });
+  if (!profile) {
+    const { data: created } = await supabase
+      .from("profiles")
+      .insert([{ display_name: "Spoorti" }])
+      .select("*")
+      .single();
+    profile = created;
   }
 
-  // -----------------------------
-  // 2) Action: Create board
-  // -----------------------------
-  if (
-    msg.includes("create board") ||
-    msg.includes("make board") ||
-    msg.includes("new board") ||
-    msg.includes("create a board")
-  ) {
-    const name = extractBoardName(raw);
-
-    if (name) {
-      reply = `I can create a board called “${name}”. Want me to do it?`;
-      action = { type: "CREATE_BOARD", name };
-      return NextResponse.json({ reply, action });
-    }
-
-    reply = 'Sure — what should the board be called? Example: create board "Cozy Corners"';
-    return NextResponse.json({ reply });
+  // 2) conversation stages
+  if (stage === "START") {
+    return NextResponse.json({
+      reply:
+        "Hey Spoorti 💗 I’m here. Before I suggest anything, tell me: what vibe do you want right now? (cozy / bold / minimal / dreamy / productive)",
+      nextStage: "ASK_VIBE",
+    });
   }
 
-  // -----------------------------
-  // 3) Suggestions: Cozy mood
-  // -----------------------------
-  if (msg.includes("cozy")) {
-    reply =
-      "Here are cozy, calm ideas. I put them in ✨ Suggested for you above your saved pins.";
+  if (stage === "ASK_VIBE") {
+    const vibe = message.toLowerCase().slice(0, 30);
+    await supabase.from("profiles").update({ vibe }).eq("id", profile.id);
 
-    ideas = [
+    return NextResponse.json({
+      reply:
+        `Got it — ${vibe}. What are you into right now? (UI, fashion, room setup, study, travel, fitness, F1… type 3–6 words)`,
+      nextStage: "ASK_INTERESTS",
+    });
+  }
+
+  if (stage === "ASK_INTERESTS") {
+    const interests = parseCSVish(message);
+    await supabase.from("profiles").update({ interests }).eq("id", profile.id);
+
+    return NextResponse.json({
+      reply:
+        "Nice. What do you want to get out of Inspire today? (ex: find ideas for a project / build a board / feel motivated / learn UI)",
+      nextStage: "ASK_GOAL",
+    });
+  }
+
+  if (stage === "ASK_GOAL") {
+    await supabase.from("profiles").update({ goals: message }).eq("id", profile.id);
+
+    // simple personalized suggestions (no OpenAI yet)
+    const ideas = [
       {
-        title: "Warm desk corner lighting",
+        title: `${profile?.vibe ?? "cozy"} moodboard starter`,
         image_url:
           "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&auto=format&fit=crop",
-        reason: "Warm light makes a space feel safe and helps you focus longer.",
-        tags: ["cozy", "workspace", "warm"],
+        reason: "Start with one anchor image and build around it.",
+        tags: [profile?.vibe ?? "vibe", ...(profile?.interests ?? []).slice(0, 2)],
       },
       {
-        title: "Soft beige UI palette",
+        title: "Clean UI section inspiration",
         image_url:
-          "https://images.unsplash.com/photo-1526481280695-3c687fd5432c?w=1200&auto=format&fit=crop",
-        reason: "Neutral palettes feel calm and premium (great for minimalist UI).",
-        tags: ["ui", "palette", "minimal"],
-      },
-      {
-        title: "Cozy café mood corner",
-        image_url:
-          "https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200&auto=format&fit=crop",
-        reason: "Textures + ambient light = instant comfort and productivity.",
-        tags: ["mood", "cozy", "lighting"],
-      },
-      {
-        title: "Minimal cozy bedroom vibe",
-        image_url:
-          "https://images.unsplash.com/photo-1505693314120-0d443867891c?w=1200&auto=format&fit=crop",
-        reason: "Clean space reduces mental clutter and improves sleep quality.",
-        tags: ["home", "cozy", "minimal"],
-      },
-      {
-        title: "Soft knit textures moodboard",
-        image_url:
-          "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1200&auto=format&fit=crop",
-        reason: "Textures are an easy shortcut to make designs and spaces feel warm.",
-        tags: ["textures", "cozy", "aesthetic"],
+          "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop",
+        reason: "Great references for spacing, type scale, and layout.",
+        tags: ["ui", "layout", "clean"],
       },
     ];
 
-    return NextResponse.json({ reply, ideas });
+    return NextResponse.json({
+      reply:
+        "Perfect. I’ll tailor suggestions to that. I dropped a few ideas above — save what feels right. Want me to also suggest 3 boards for you?",
+      nextStage: "DONE",
+      ideas,
+    });
   }
 
-  // -----------------------------
-  // Default response
-  // -----------------------------
-  return NextResponse.json({ reply, ideas });
+  // DONE: conversational follow-ups
+  // Here we can keep it simple: reflect + propose next action
+  return NextResponse.json({
+    reply:
+      "Tell me what you’re feeling right now (or paste a link/image idea), and I’ll suggest ideas + boards based on your vibe and interests.",
+    nextStage: "DONE",
+  });
 }
