@@ -21,9 +21,14 @@ export function AssistantWidget() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [stage, setStage] = useState<string>(() => localStorage.getItem("inspire_stage") || "START");
-
+  const [stage, setStage] = useState<string>("START");
   const { setSuggestedIdeas } = useAssistantSuggestions();
+  useEffect(() => {
+  const savedStage = window.localStorage.getItem("inspire_stage");
+  if (savedStage) {
+    setStage(savedStage);
+  }
+  }, []); 
 
   const [messages, setMessages] = useState<ChatMsg[]>([
     {

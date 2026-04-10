@@ -129,8 +129,8 @@ useEffect(() => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching boards:", error);
-      return;
+    console.error("Error fetching ideas:", JSON.stringify(error, null, 2));
+    return;
     }
     setBoards(data || []);
   }
