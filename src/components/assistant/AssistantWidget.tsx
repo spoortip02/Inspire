@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, X, Bot } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { useAssistantSuggestions } from "@/components/assistant/assistant-suggestions-context";
+import { InspireMark } from "@/components/ui/InspireMark";
 
 type ChatMsg = {
   id: string;
@@ -12,9 +13,9 @@ type ChatMsg = {
 };
 
 const quickActions = [
-  { label: "✨ Suggest ideas for my mood", prompt: "Suggest 6 ideas for a cozy, calm mood." },
-  { label: "🧠 Ask me questions", prompt: "Ask me 5 questions to understand my taste and mood." },
-  { label: "📌 Help me organize", prompt: "Suggest 3 boards I should create based on my interests." },
+  { label: "Suggest ideas for my mood", prompt: "Suggest 6 ideas for a cozy, calm mood." },
+  { label: "Ask me questions", prompt: "Ask me 5 questions to understand my taste and mood." },
+  { label: "Help me organize", prompt: "Suggest 3 boards I should create based on my interests." },
 ];
 
 export function AssistantWidget() {
@@ -24,24 +25,24 @@ export function AssistantWidget() {
   const [stage, setStage] = useState<string>("START");
   const { setSuggestedIdeas } = useAssistantSuggestions();
   useEffect(() => {
-  const savedStage = window.localStorage.getItem("inspire_stage");
-  if (savedStage) {
-    setStage(savedStage);
-  }
-  }, []); 
+    const savedStage = window.localStorage.getItem("inspire_stage");
+    if (savedStage) {
+      setStage(savedStage);
+    }
+  }, []);
 
   const [messages, setMessages] = useState<ChatMsg[]>([
     {
       id: crypto.randomUUID(),
       role: "assistant",
       content:
-        "Hi Spoorti 👋 I’m your Inspire buddy. Tell me your mood or what you’re searching for, and I’ll suggest ideas + boards.",
+        "Hi Spoorti — I'm your Inspire buddy. Tell me your mood or what you're searching for, and I'll suggest ideas + boards.",
     },
   ]);
 
   const listRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ Auto-open + auto-send message from WelcomeOverlay
+  // Auto-open + auto-send message from WelcomeOverlay
   useEffect(() => {
     const pending = localStorage.getItem("inspire_pending_message");
     if (!pending) return;
@@ -70,13 +71,11 @@ export function AssistantWidget() {
 
     const userMsg: ChatMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
 
-    // ✅ Optimistic UI
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
 
     try {
-      // ✅ IMPORTANT: include the new user message in history
       const historyForApi = [...messages, userMsg].map((m) => ({
         role: m.role,
         content: m.content,
@@ -94,11 +93,10 @@ export function AssistantWidget() {
 
       const data = await res.json();
       if (data?.nextStage) {
-  setStage(data.nextStage);
-  localStorage.setItem("inspire_stage", String(data.nextStage));
-}
+        setStage(data.nextStage);
+        localStorage.setItem("inspire_stage", String(data.nextStage));
+      }
 
-      // ✅ Suggestions -> context
       if (Array.isArray(data?.ideas)) {
         setSuggestedIdeas(
           data.ideas.map((it: any) => ({
@@ -114,7 +112,7 @@ export function AssistantWidget() {
       const assistantMsg: ChatMsg = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: data?.reply ?? "Hmm, I couldn’t think of anything. Try again?",
+        content: data?.reply ?? "Hmm, I couldn't think of anything. Try again?",
       };
 
       setMessages((prev) => [...prev, assistantMsg]);
@@ -134,20 +132,17 @@ export function AssistantWidget() {
 
   return (
     <>
-      {/* Floating mascot */}
+      {/* Floating trigger */}
       <div className="fixed bottom-5 right-5 z-50">
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.05, rotate: -2 }}
+          whileTap={{ scale: 0.96 }}
           onClick={() => setOpen((v) => !v)}
-          className="relative grid h-14 w-14 place-items-center rounded-2xl bg-neutral-900 text-white shadow-xl"
+          className="relative grid h-14 w-14 place-items-center rounded-md bg-ink shadow-[3px_4px_0_rgba(33,30,26,0.25)]"
           aria-label="Open Inspire Assistant"
           title="Inspire Assistant"
         >
-          <span className="text-2xl">🦉</span>
-          <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-neutral-900 shadow">
-            <Sparkles size={14} />
-          </span>
+          <InspireMark size={26} />
         </motion.button>
       </div>
 
@@ -159,35 +154,37 @@ export function AssistantWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 18, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="fixed bottom-24 right-5 z-50 w-[360px] overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl"
+            className="fixed bottom-24 right-5 z-50 w-[360px] overflow-hidden rounded-md border border-ink/10 bg-card shadow-[5px_6px_0_rgba(33,30,26,0.1)]"
           >
-            <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
               <div className="flex items-center gap-2">
-                <div className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-900 text-white">
-                  <Bot size={18} />
-                </div>
+                <InspireMark size={30} />
                 <div>
-                  <p className="text-sm font-semibold leading-4">Inspire Buddy</p>
-                  <p className="text-xs text-neutral-500">Mood → ideas → boards</p>
+                  <p className="font-serif text-sm font-semibold leading-4 text-ink">
+                    Inspire Buddy
+                  </p>
+                  <p className="font-mono text-[11px] uppercase tracking-wide text-ink/45">
+                    mood → ideas → boards
+                  </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setOpen(false)}
-                className="grid h-9 w-9 place-items-center rounded-xl hover:bg-neutral-100"
+                className="grid h-8 w-8 place-items-center rounded-sm text-ink/50 transition hover:bg-ink/5 hover:text-ink"
                 aria-label="Close assistant"
               >
-                <X size={18} />
+                <X size={17} />
               </button>
             </div>
 
             {/* Quick actions */}
-            <div className="flex flex-wrap gap-2 border-b border-neutral-200 bg-neutral-50 px-4 py-3">
+            <div className="flex flex-wrap gap-2 border-b border-ink/10 bg-ink/[0.02] px-4 py-3">
               {quickActions.map((q) => (
                 <button
                   key={q.label}
                   onClick={() => send(q.prompt)}
-                  className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100"
+                  className="rounded-sm border border-ink/15 bg-card px-2.5 py-1.5 font-mono text-[11px] text-ink/70 transition hover:border-cobalt/40 hover:text-cobalt"
                 >
                   {q.label}
                 </button>
@@ -202,10 +199,10 @@ export function AssistantWidget() {
                   className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed ${
+                    className={`max-w-[85%] rounded-sm px-3 py-2 text-sm leading-relaxed ${
                       m.role === "user"
-                        ? "bg-neutral-900 text-white"
-                        : "bg-neutral-100 text-neutral-900"
+                        ? "bg-ink text-paper"
+                        : "border border-ink/10 bg-paper text-ink"
                     }`}
                   >
                     {m.content}
@@ -215,8 +212,8 @@ export function AssistantWidget() {
 
               {loading && (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm text-neutral-700">
-                    Thinking…
+                  <div className="rounded-sm border border-ink/10 bg-paper px-3 py-2 font-mono text-xs text-ink/60">
+                    thinking…
                   </div>
                 </div>
               )}
@@ -228,21 +225,21 @@ export function AssistantWidget() {
                 e.preventDefault();
                 send(input);
               }}
-              className="flex items-center gap-2 border-t border-neutral-200 px-4 py-3"
+              className="flex items-center gap-2 border-t border-ink/10 px-4 py-3"
             >
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask for ideas, moods, boards…"
-                className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+                placeholder="Ask for ideas, moods, boards..."
+                className="w-full border-b border-ink/15 bg-transparent px-1 py-2 font-mono text-sm text-ink outline-none placeholder:text-ink/35 focus:border-cobalt"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="grid h-10 w-10 place-items-center rounded-xl bg-neutral-900 text-white hover:bg-neutral-800 disabled:opacity-60"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-sm bg-ink text-paper transition hover:bg-cobalt disabled:opacity-50"
                 aria-label="Send message"
               >
-                <Send size={18} />
+                <Send size={16} />
               </button>
             </form>
           </motion.div>

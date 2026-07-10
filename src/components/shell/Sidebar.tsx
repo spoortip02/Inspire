@@ -1,15 +1,16 @@
-import { FolderHeart, LayoutGrid, Wand2 } from "lucide-react";
+import { FolderHeart, LayoutGrid, NotebookPen, Wand2 } from "lucide-react";
 
 const items = [
   { label: "For You", icon: LayoutGrid },
+  { label: "Thoughts", icon: NotebookPen }, // new: a writing surface, not just saved links
   { label: "Boards", icon: FolderHeart },
   { label: "Mood AI", icon: Wand2 },
 ];
 
 export function Sidebar() {
   return (
-    <aside className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-neutral-200">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+    <aside className="rounded-md bg-card p-4 shadow-[3px_4px_0_rgba(33,30,26,0.06)] ring-1 ring-ink/10">
+      <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-ink/45">
         Navigation
       </p>
 
@@ -17,18 +18,19 @@ export function Sidebar() {
         {items.map((it) => (
           <button
             key={it.label}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            className="flex w-full items-center gap-3 rounded-sm px-2 py-2 text-sm font-medium text-ink/75 transition hover:bg-ink/5 hover:text-ink"
           >
-            <it.icon size={18} className="text-neutral-500" />
+            <it.icon size={17} strokeWidth={1.75} className="text-ink/45" />
             {it.label}
           </button>
         ))}
       </nav>
 
-      <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-        <p className="text-sm font-semibold">Today’s vibe</p>
-        <p className="mt-1 text-xs text-neutral-600">
-          Save 2–3 ideas that match how you want to feel this week.
+      <div className="relative mt-6 -rotate-1 rounded-sm border border-dashed border-poppy/40 bg-poppy/[0.06] p-3">
+        <span className="absolute left-1/2 top-0 h-3 w-8 -translate-x-1/2 -translate-y-1/2 rotate-1 bg-card shadow-sm" />
+        <p className="font-serif text-sm font-semibold text-ink">Today's vibe</p>
+        <p className="mt-1 text-xs leading-5 text-ink/60">
+          Write down or save 2-3 things that match how you want to feel this week.
         </p>
       </div>
     </aside>

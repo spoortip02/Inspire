@@ -6,8 +6,8 @@ import type { Idea } from "./IdeaGrid";
 
 type Props = {
   idea: Idea;
-  onSave?: (idea: Idea) => void; // ✅ optional
-  showSave?: boolean; // ✅ optional (useful if you want Save only for suggestions)
+  onSave?: (idea: Idea) => void;
+  showSave?: boolean;
 };
 
 export function IdeaCard({ idea, onSave, showSave = false }: Props) {
@@ -15,9 +15,9 @@ export function IdeaCard({ idea, onSave, showSave = false }: Props) {
     <motion.article
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}
-      className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm"
+      className="group overflow-hidden rounded-md border border-ink/10 bg-card shadow-[3px_4px_0_rgba(33,30,26,0.06)]"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+      <div className="relative aspect-[4/3] overflow-hidden bg-ink/5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={idea.image_url || ""}
@@ -29,38 +29,36 @@ export function IdeaCard({ idea, onSave, showSave = false }: Props) {
           referrerPolicy="no-referrer"
         />
 
-        {/* Top-right actions */}
         <div className="absolute right-3 top-3 flex gap-2">
           {idea.link_url ? (
             <a
               href={idea.link_url}
               target="_blank"
               rel="noreferrer"
-              className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white"
+              className="grid h-8 w-8 place-items-center rounded-sm bg-card/90 text-ink shadow-sm transition hover:text-cobalt"
               aria-label="Open link"
             >
-              <ExternalLink size={16} />
+              <ExternalLink size={15} />
             </a>
           ) : null}
 
           <button
             type="button"
-            className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white"
+            className="grid h-8 w-8 place-items-center rounded-sm bg-card/90 text-ink shadow-sm transition hover:text-cobalt"
             aria-label="Bookmark"
           >
-            <Bookmark size={16} />
+            <Bookmark size={15} />
           </button>
 
           <button
             type="button"
-            className="grid h-9 w-9 place-items-center rounded-xl bg-white/90 shadow-sm hover:bg-white"
+            className="grid h-8 w-8 place-items-center rounded-sm bg-card/90 text-ink shadow-sm transition hover:text-poppy"
             aria-label="Like"
           >
-            <Heart size={16} />
+            <Heart size={15} />
           </button>
         </div>
 
-        {/* Save button (bottom-right) — only when you want it */}
         {showSave && onSave ? (
           <div className="absolute bottom-3 right-3">
             <button
@@ -69,7 +67,7 @@ export function IdeaCard({ idea, onSave, showSave = false }: Props) {
                 e.stopPropagation();
                 onSave(idea);
               }}
-              className="rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-neutral-800"
+              className="rounded-sm bg-ink px-3 py-1.5 text-xs font-medium text-paper shadow-sm transition hover:bg-cobalt"
             >
               Save
             </button>
@@ -78,19 +76,21 @@ export function IdeaCard({ idea, onSave, showSave = false }: Props) {
       </div>
 
       <div className="p-4">
-        <h3 className="line-clamp-1 text-sm font-semibold">{idea.title}</h3>
+        <h3 className="line-clamp-1 font-serif text-sm font-semibold text-ink">{idea.title}</h3>
 
         {idea.note ? (
-          <p className="mt-1 line-clamp-2 text-xs text-neutral-600">{idea.note}</p>
+          <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink/60">{idea.note}</p>
         ) : (
-          <p className="mt-1 text-xs text-neutral-400">No reflection yet</p>
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-wide text-ink/30">
+            no reflection yet
+          </p>
         )}
 
         <div className="mt-3 flex flex-wrap gap-2">
           {(idea.tags || []).map((t) => (
             <span
               key={t}
-              className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-medium text-neutral-700"
+              className="rounded-sm border border-ink/10 bg-paper px-2 py-1 font-mono text-[10px] text-ink/60"
             >
               #{t}
             </span>

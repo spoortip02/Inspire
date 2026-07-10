@@ -5,18 +5,36 @@ import { Modal } from "@/components/ui/Modal";
 
 function normalizeUnsplashToImageUrl(input: string) {
   const url = input.trim();
-
-  // If user pasted an Unsplash photo page, convert it to the "source" image endpoint.
-  // Example:
-  // https://unsplash.com/photos/abc123  -> https://source.unsplash.com/abc123/1200x900
   const match = url.match(/^https:\/\/unsplash\.com\/photos\/([A-Za-z0-9_-]+)/);
   if (match?.[1]) {
     const id = match[1];
     return `https://source.unsplash.com/${id}/1200x900`;
   }
-
   return url;
 }
+
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="font-mono text-[11px] uppercase tracking-wide text-ink/50">
+        {label}
+      </label>
+      <div className="mt-1.5">{children}</div>
+      {hint ? <p className="mt-1.5 text-xs text-ink/45">{hint}</p> : null}
+    </div>
+  );
+}
+
+const inputClass =
+  "w-full border-b border-ink/15 bg-transparent px-1 py-2 text-sm text-ink outline-none placeholder:text-ink/35 focus:border-cobalt transition-colors";
 
 export function SaveIdeaModal({
   open,
@@ -57,11 +75,8 @@ export function SaveIdeaModal({
 
     const img = imageUrl.trim();
     const link = linkUrl.trim();
-
-    // Require at least one source
     if (!img && !link) return;
 
-    // If user pasted an unsplash page into image field, normalize it.
     const normalizedImage = img ? normalizeUnsplashToImageUrl(img) : undefined;
 
     onSave({
@@ -84,65 +99,52 @@ export function SaveIdeaModal({
 
   return (
     <Modal open={open} title="Save a new idea" onClose={onClose}>
-      <div className="space-y-4">
-        <div>
-          <label className="text-xs font-medium text-neutral-700">Title</label>
+      <div className="space-y-5">
+        <Field label="Title">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g., Snowy night mood"
-            className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+            className={inputClass}
           />
-        </div>
+        </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-medium text-neutral-700">
-              Image URL (can paste Unsplash photo link too)
-            </label>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field label="Image URL" hint="Unsplash photo links are converted automatically.">
             <input
               value={imageUrl}
               onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images... OR https://unsplash.com/photos/..."
-              className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+              placeholder="https://images... or unsplash.com/photos/..."
+              className={inputClass}
             />
-          </div>
+          </Field>
 
-          <div>
-            <label className="text-xs font-medium text-neutral-700">Link URL (optional)</label>
+          <Field label="Link (optional)">
             <input
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               placeholder="https://..."
-              className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+              className={inputClass}
             />
-          </div>
+          </Field>
         </div>
 
-        <p className="text-xs text-neutral-500">
-          If you paste an Unsplash photo page, we’ll auto-convert it into a renderable image.
-        </p>
-
-        <div>
-          <label className="text-xs font-medium text-neutral-700">
-            Reflection (why it matters)
-          </label>
+        <Field label="Reflection — why it matters">
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Write a personal note…"
+            placeholder="Write a personal note..."
             rows={3}
-            className="mt-2 w-full resize-none rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+            className={`${inputClass} resize-none`}
           />
-        </div>
+        </Field>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-medium text-neutral-700">Board</label>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <Field label="Board">
             <select
               value={boardId}
               onChange={(e) => setBoardId(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+              className={`${inputClass} appearance-none bg-card`}
             >
               <option value="">No board</option>
               {boards.map((b) => (
@@ -151,31 +153,28 @@ export function SaveIdeaModal({
                 </option>
               ))}
             </select>
-          </div>
+          </Field>
 
-          <div>
-            <label className="text-xs font-medium text-neutral-700">
-              Tags (comma separated)
-            </label>
+          <Field label="Tags" hint="comma separated">
             <input
               value={tagsText}
               onChange={(e) => setTagsText(e.target.value)}
               placeholder="cozy, night, mountains"
-              className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20"
+              className={inputClass}
             />
-          </div>
+          </Field>
         </div>
 
-        <div className="flex justify-end gap-2 pt-1">
+        <div className="flex justify-end gap-3 pt-2">
           <button
             onClick={onClose}
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-100"
+            className="font-mono text-xs uppercase tracking-wider text-ink/50 underline decoration-dotted underline-offset-4 transition hover:text-ink"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            className="rounded-sm bg-ink px-5 py-2.5 text-sm font-medium text-paper transition hover:bg-cobalt"
           >
             Save
           </button>

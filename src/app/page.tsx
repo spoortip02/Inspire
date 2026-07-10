@@ -114,8 +114,7 @@ function HomeInner() {
 }
 
 useEffect(() => {
-  const seen = localStorage.getItem("inspire_seen_welcome");
-  if (!seen) setShowWelcome(true);
+  setShowWelcome(true);
 }, []);
 
 

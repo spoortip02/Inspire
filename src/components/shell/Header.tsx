@@ -1,25 +1,25 @@
-import { Sparkles } from "lucide-react";
+import { InspireMark } from "@/components/ui/InspireMark";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-20 border-b border-neutral-200 bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-ink/10 bg-paper/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-neutral-900 text-white">
-            <Sparkles size={18} />
-          </div>
+        <div className="flex items-center gap-3">
+          <InspireMark size={34} />
           <div>
-            <p className="text-sm font-semibold leading-4">Inspire</p>
-            <p className="text-xs text-neutral-500">Visual idea journal</p>
+            <p className="font-serif text-base font-semibold leading-4 text-ink">Inspire</p>
+            <p className="font-mono text-[11px] uppercase tracking-wider text-ink/45">
+              thoughts &amp; things worth keeping
+            </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <input
-            placeholder="Search ideas, boards..."
-            className="hidden w-72 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/20 md:block"
+            placeholder="Search thoughts, ideas, boards..."
+            className="hidden w-72 border-b border-ink/20 bg-transparent px-1 py-2 font-mono text-sm text-ink outline-none placeholder:text-ink/35 focus:border-cobalt md:block"
           />
-          <button className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium hover:bg-neutral-100">
+          <button className="font-mono text-xs uppercase tracking-wider text-ink/60 underline decoration-dotted underline-offset-4 transition hover:text-ink">
             Sign in
           </button>
         </div>
